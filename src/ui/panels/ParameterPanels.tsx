@@ -2,8 +2,8 @@ import { makeGrid } from '../../model/grid';
 import { diffusionNumber } from '../../model/limits';
 import { plantLattice } from '../../model/plants';
 import type { Scenario } from '../../model/scenario';
-import type { VelocityPresetKind } from '../../model/types';
 import { CheckboxField, NumberInput, SelectField, SliderField } from '../controls';
+import { BOUNDARY_OPTIONS, VELOCITY_OPTIONS } from '../groups';
 import { edit, monthName } from '../scenarioEdit';
 import { fmtNum } from '../theme';
 
@@ -100,13 +100,6 @@ export function BiologyPanel({ sc, set }: PanelProps) {
   );
 }
 
-const VELOCITY: { value: VelocityPresetKind; label: string }[] = [
-  { value: 'none', label: 'No water flow' },
-  { value: 'uniform', label: 'Uniform flow' },
-  { value: 'centerDepression', label: 'Depression in the centre' },
-  { value: 'unilateralDepression', label: 'Slope on one half (x > Lx/2)' },
-];
-
 export function TransportPanel({ sc, set }: PanelProps) {
   const up = (f: (d: Scenario) => void) => set(edit(sc, f));
   const t = sc.transport;
@@ -124,7 +117,7 @@ export function TransportPanel({ sc, set }: PanelProps) {
         hint="Most uncertain parameter. Resting spores barely move in soil: try 0.001–0.05. Large β smears spores out below the threshold and drains them over the field edge."
         onChange={(v) => up((d) => (d.transport.beta = v))}
       />
-      <SelectField label="Water flow" value={t.velocity.preset} options={VELOCITY} onChange={(v) => up((d) => (d.transport.velocity.preset = v))} />
+      <SelectField label="Water flow" value={t.velocity.preset} options={VELOCITY_OPTIONS} onChange={(v) => up((d) => (d.transport.velocity.preset = v))} />
       <SliderField
         label="Max water velocity"
         unit="m/week"
@@ -149,10 +142,7 @@ export function TransportPanel({ sc, set }: PanelProps) {
       <SelectField
         label="Field boundary"
         value={t.boundary}
-        options={[
-          { value: 'dirichlet', label: 'Spores leave the field (p = 0)' },
-          { value: 'zeroFlux', label: 'Closed (no flux)' },
-        ]}
+        options={BOUNDARY_OPTIONS}
         onChange={(v) => up((d) => (d.transport.boundary = v))}
       />
     </>

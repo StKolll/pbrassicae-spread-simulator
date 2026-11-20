@@ -3,16 +3,18 @@ import type { Scenario } from '../model/scenario';
 import type { Frame, SeriesPoint } from '../model/simulate';
 import { startRun, type RunHandle } from '../worker/client';
 import type { RunMeta, RunSummary } from '../worker/protocol';
-import type { SweepPlan } from './sweep';
+import type { GroupPlan } from './groups';
 import type { RunStatus } from './useSimulation';
 
-export type SweepRunStatus = RunStatus | 'queued';
+export type GroupRunStatus = RunStatus | 'queued';
 
-export interface SweepRunView {
-  value: number;
+export interface GroupRunView {
+  /** Group letter. */
   label: string;
+  /** What differs in this group. */
+  description: string;
   scenario: Scenario;
-  status: SweepRunStatus;
+  status: GroupRunStatus;
   fraction: number;
   meta: RunMeta | null;
   series: SeriesPoint[];
@@ -21,25 +23,20 @@ export interface SweepRunView {
   error: string | null;
 }
 
-export interface SweepView {
+export interface CompareView {
   status: 'idle' | 'running' | 'done' | 'cancelled';
-  /** Label and unit of the swept parameter. */
-  paramLabel: string;
-  unit?: string;
-  /** Base scenario the sweep was started from (to detect later edits). */
-  base: Scenario | null;
-  runs: SweepRunView[];
+  runs: GroupRunView[];
   /** Increases whenever any run's series or frames grow. */
   version: number;
 }
 
 const RENDER_INTERVAL = 250;
-const empty: SweepView = { status: 'idle', paramLabel: '', base: null, runs: [], version: 0 };
+const empty: CompareView = { status: 'idle', runs: [], version: 0 };
 
-/** Runs the scenarios of a sweep in parallel workers (at most `plan.parallel` at once). */
-export function useSweep() {
-  const [view, setView] = useState<SweepView>(empty);
-  const live = useRef<SweepView>(empty);
+/** Runs the groups of a comparison in parallel workers (at most `plan.parallel` at once). */
+export function useCompareRuns() {
+  const [view, setView] = useState<CompareView>(empty);
+  const live = useRef<CompareView>(empty);
   const handles = useRef<RunHandle[]>([]);
   const timer = useRef(0);
   const generation = useRef(0);
@@ -67,12 +64,12 @@ export function useSweep() {
   }, []);
 
   const run = useCallback(
-    (plan: SweepPlan, base: Scenario, paramLabel: string, unit?: string) => {
+    (plan: GroupPlan) => {
       stopAll();
       const gen = generation.current;
-      const runs: SweepRunView[] = plan.runs.map((r) => ({
-        value: r.value,
+      const runs: GroupRunView[] = plan.runs.map((r) => ({
         label: r.label,
+        description: r.description,
         scenario: r.scenario,
         status: 'queued',
         fraction: 0,
@@ -82,10 +79,10 @@ export function useSweep() {
         summary: null,
         error: null,
       }));
-      live.current = { status: 'running', paramLabel, unit, base: structuredClone(base), runs, version: 0 };
+      live.current = { status: 'running', runs, version: 0 };
       setView(live.current);
 
-      const patch = (k: number, p: Partial<SweepRunView>) => {
+      const patch = (k: number, p: Partial<GroupRunView>) => {
         if (gen !== generation.current) return;
         live.current.runs[k] = { ...live.current.runs[k], ...p };
         publish();
@@ -104,7 +101,7 @@ export function useSweep() {
         const series = live.current.runs[k].series;
         const frames = live.current.runs[k].frames;
         patch(k, { status: 'running' });
-        const finished = (p: Partial<SweepRunView>) => {
+        const finished = (p: Partial<GroupRunView>) => {
           patch(k, p);
           startNext();
         };

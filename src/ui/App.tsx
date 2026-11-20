@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { assess } from '../model/limits';
 import { austriaPreset } from '../model/presets';
 import type { Scenario } from '../model/scenario';
-import { Compare, initialSweepSetup, type SweepSetup } from './Compare';
+import { Compare } from './Compare';
 import { Section } from './controls';
+import { initialCompareSetup, type CompareSetup } from './groups';
 import { CropEditor } from './panels/CropEditor';
 import { AdvancedPanel, BiologyPanel, FieldPanel, InitialPanel, NumericsPanel, TransportPanel } from './panels/ParameterPanels';
 import { PresetBar } from './panels/PresetBar';
@@ -12,8 +13,8 @@ import { Results } from './Results';
 import { RunPanel } from './RunPanel';
 import { looksLikeScenario, migrateCropNames } from './scenarioEdit';
 import { sameSettings } from './userPresets';
+import { useCompareRuns } from './useCompareRuns';
 import { useSimulation } from './useSimulation';
-import { useSweep } from './useSweep';
 
 const STORAGE_KEY = 'pbrassicae.scenario.v1';
 
@@ -34,9 +35,9 @@ function loadStored(): Scenario {
 export function App() {
   const [sc, setSc] = useState<Scenario>(loadStored);
   const sim = useSimulation();
-  const sweep = useSweep();
+  const compare = useCompareRuns();
   const [tab, setTab] = useState<'single' | 'compare'>('single');
-  const [sweepSetup, setSweepSetup] = useState<SweepSetup>(() => initialSweepSetup(sc));
+  const [compareSetup, setCompareSetup] = useState<CompareSetup>(initialCompareSetup);
   const assessment = useMemo(() => assess(sc), [sc]);
 
   useEffect(() => {
@@ -97,17 +98,18 @@ export function App() {
             Single run
           </button>
           <button type="button" role="tab" aria-selected={tab === 'compare'} aria-pressed={tab === 'compare'} onClick={() => setTab('compare')}>
-            Compare values
+            Compare groups
           </button>
         </div>
         {tab === 'compare' ? (
           <Compare
             sc={sc}
-            setup={sweepSetup}
-            setSetup={setSweepSetup}
-            view={sweep.view}
-            onRun={(plan, label, unit) => sweep.run(plan, sc, label, unit)}
-            onCancel={sweep.cancel}
+            setSc={setSc}
+            setup={compareSetup}
+            setSetup={setCompareSetup}
+            view={compare.view}
+            onRun={compare.run}
+            onCancel={compare.cancel}
           />
         ) : run.status === 'idle' ? (
           <div className="empty">
