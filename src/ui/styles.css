@@ -150,6 +150,35 @@ input.num,
 .sidebar-head p {
   margin: 0 0 8px;
 }
+.preset-bar .field {
+  margin-bottom: 6px;
+}
+.preset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.preset-actions .spacer {
+  flex: 1;
+}
+.preset-name {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+.sidebar-head p.preset-msg {
+  font-size: 0.85em;
+  color: var(--muted);
+  margin: -2px 0 8px;
+}
+.sidebar-head p.preset-msg.error {
+  color: var(--bad-ink);
+}
 .sections {
   overflow-y: auto;
   flex: 1;
@@ -686,6 +715,114 @@ button.run {
 }
 
 /* Time series -------------------------------------------------------------------------- */
+/* Tabs and comparison -------------------------------------------------------------------- */
+.tabs {
+  margin-bottom: 12px;
+}
+.sweep-setup {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+.sweep-setup p {
+  margin: 0 0 8px;
+}
+.sweep-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+.sweep-row label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.sweep-values {
+  flex: 1;
+  min-width: 220px;
+}
+.sweep-values input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+.sweep-setup .hint {
+  margin: 4px 0 8px;
+}
+.sweep-msg {
+  font-size: 0.9em;
+}
+.sweep-msg.error {
+  color: var(--bad-ink);
+}
+.compare-heading {
+  font-size: 1em;
+  margin: 4px 0 0;
+}
+.compare-maps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+}
+.compare-map {
+  margin: 0;
+}
+.compare-map figcaption {
+  font-size: 0.9em;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.compare-map .field-plot {
+  height: 300px;
+  min-height: 0;
+}
+.swatch-line {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.compare-map .swatch-line {
+  margin-right: 0;
+}
+.compare-table-wrap {
+  overflow-x: auto;
+}
+.compare-table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+.compare-table caption {
+  text-align: left;
+  color: var(--muted);
+  padding-bottom: 4px;
+}
+.compare-table th,
+.compare-table td {
+  padding: 4px 12px 4px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+.compare-table th:first-child {
+  text-align: left;
+}
+.compare-table thead th {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
 .timeseries {
   display: grid;
   grid-template-columns: 1fr;

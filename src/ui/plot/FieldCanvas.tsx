@@ -15,6 +15,8 @@ interface Props {
   threshold: number;
   color: ColorSettings;
   theme: ChartTheme;
+  /** Short legend (symbols and counts only) for small maps. */
+  compact?: boolean;
 }
 
 const LOG_FLOOR = 0; // log scale starts at 1 spore/g
@@ -65,7 +67,7 @@ const niceStep = (span: number) => {
 
 const STATE_NAMES = ['', 'healthy', 'infected', 'burst'];
 
-export function FieldCanvas({ meta, frame, threshold, color, theme }: Props) {
+export function FieldCanvas({ meta, frame, threshold, color, theme, compact = false }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -298,14 +300,14 @@ export function FieldCanvas({ meta, frame, threshold, color, theme }: Props) {
       ctx.lineTo(lx + 16, ly);
       ctx.stroke();
       ctx.setLineDash([]);
-    }, 'threshold c*');
+    }, compact ? 'c*' : 'threshold c*');
     if (color.showPlants) {
       item(() => {
         ctx.fillStyle = theme.healthy;
         ctx.beginPath();
         ctx.arc(lx + 8, ly, 3, 0, 2 * Math.PI);
         ctx.fill();
-      }, `healthy (${counts[1]})`);
+      }, compact ? `${counts[1]}` : `healthy (${counts[1]})`);
       item(() => {
         ctx.fillStyle = theme.infected;
         ctx.beginPath();
@@ -314,7 +316,7 @@ export function FieldCanvas({ meta, frame, threshold, color, theme }: Props) {
         ctx.lineTo(lx + 8, ly + 5);
         ctx.lineTo(lx + 3, ly);
         ctx.fill();
-      }, `infected (${counts[2]})`);
+      }, compact ? `${counts[2]}` : `infected (${counts[2]})`);
       item(() => {
         ctx.strokeStyle = theme.burst;
         ctx.lineWidth = 2;
@@ -324,9 +326,9 @@ export function FieldCanvas({ meta, frame, threshold, color, theme }: Props) {
         ctx.moveTo(lx + 12, ly - 4);
         ctx.lineTo(lx + 4, ly + 4);
         ctx.stroke();
-      }, `burst (${counts[3]})`);
+      }, compact ? `${counts[3]}` : `burst (${counts[3]})`);
     }
-  }, [size, rect, frame, scale, lut, theme, threshold, color.showPlants, g, image, plants]);
+  }, [size, rect, frame, scale, lut, theme, threshold, color.showPlants, g, image, plants, compact]);
 
   const onMove = (e: React.MouseEvent) => {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();

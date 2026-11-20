@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { assess } from '../model/limits';
-import { austriaPreset, presets } from '../model/presets';
+import { austriaPreset } from '../model/presets';
 import type { Scenario } from '../model/scenario';
+import { Compare, initialSweepSetup, type SweepSetup } from './Compare';
 import { Section } from './controls';
 import { CropEditor } from './panels/CropEditor';
 import { AdvancedPanel, BiologyPanel, FieldPanel, InitialPanel, NumericsPanel, TransportPanel } from './panels/ParameterPanels';
+import { PresetBar } from './panels/PresetBar';
 import { RotationEditor } from './panels/RotationEditor';
 import { Results } from './Results';
 import { RunPanel } from './RunPanel';
-import { looksLikeScenario, matchingPreset, migrateCropNames, presetNames, type PresetName } from './scenarioEdit';
+import { looksLikeScenario, migrateCropNames } from './scenarioEdit';
+import { sameSettings } from './userPresets';
 import { useSimulation } from './useSimulation';
+import { useSweep } from './useSweep';
 
 const STORAGE_KEY = 'pbrassicae.scenario.v1';
 
@@ -30,8 +34,10 @@ function loadStored(): Scenario {
 export function App() {
   const [sc, setSc] = useState<Scenario>(loadStored);
   const sim = useSimulation();
+  const sweep = useSweep();
+  const [tab, setTab] = useState<'single' | 'compare'>('single');
+  const [sweepSetup, setSweepSetup] = useState<SweepSetup>(() => initialSweepSetup(sc));
   const assessment = useMemo(() => assess(sc), [sc]);
-  const preset = matchingPreset(sc);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -45,7 +51,7 @@ export function App() {
   }, [sc]);
 
   const run = sim.view;
-  const stale = !!run.scenario && JSON.stringify(run.scenario) !== JSON.stringify(sc);
+  const stale = !!run.scenario && !sameSettings(run.scenario, sc);
 
   return (
     <div className="app">
@@ -55,26 +61,7 @@ export function App() {
             <i>P. brassicae</i> simulator
           </h1>
           <p className="muted">Clubroot spore spread in a field over a crop rotation.</p>
-          <div className="field">
-            <label htmlFor="preset">Preset</label>
-            <div className="field-control">
-              <select
-                id="preset"
-                value={preset ?? ''}
-                onChange={(e) => {
-                  const n = e.target.value as PresetName;
-                  if (n in presets) setSc(presets[n]());
-                }}
-              >
-                {!preset && <option value="">Modified ({sc.name})</option>}
-                {presetNames.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <PresetBar sc={sc} set={setSc} />
         </header>
         <div className="sections">
           <Section title="Biology" open>
@@ -105,7 +92,24 @@ export function App() {
         <RunPanel assessment={assessment} status={run.status} fraction={run.fraction} onRun={() => sim.run(sc)} onCancel={sim.cancel} />
       </aside>
       <main className="main">
-        {run.status === 'idle' ? (
+        <div className="tabs segmented" role="tablist" aria-label="Results">
+          <button type="button" role="tab" aria-selected={tab === 'single'} aria-pressed={tab === 'single'} onClick={() => setTab('single')}>
+            Single run
+          </button>
+          <button type="button" role="tab" aria-selected={tab === 'compare'} aria-pressed={tab === 'compare'} onClick={() => setTab('compare')}>
+            Compare values
+          </button>
+        </div>
+        {tab === 'compare' ? (
+          <Compare
+            sc={sc}
+            setup={sweepSetup}
+            setSetup={setSweepSetup}
+            view={sweep.view}
+            onRun={(plan, label, unit) => sweep.run(plan, sc, label, unit)}
+            onCancel={sweep.cancel}
+          />
+        ) : run.status === 'idle' ? (
           <div className="empty">
             <h2>No results yet</h2>
             <p>
